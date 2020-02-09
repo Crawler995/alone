@@ -7,6 +7,7 @@ let centerSphere;
 let time = 0;
 const minDivideTime = 0.4;
 
+
 addExpandingOrbit = () => {
   orbits.push(new ExpandingOrbit({
     orbit: {
@@ -29,7 +30,6 @@ addExpandingOrbit = () => {
 
 setup = () => {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  fft = new p5.FFT();
 
   centerSphere = new Sphere({
     radius: 20,
@@ -37,14 +37,13 @@ setup = () => {
     color: color(colorboard.sphere)
   });
 
-  const title = document.getElementsByClassName('title')[0];
-  music = loadSound('../assets/Can We Kiss Forever.mp3', () => {
-    title.innerHTML = 'Where is my mind?';
+  // music = loadSound('../assets/Can We Kiss Forever.mp3', () => {
+  //   title.innerHTML = 'Where is my mind?';
 
-    music.setLoop(true);
-    music.play();
+  //   music.setLoop(true);
+  //   music.play();
 
-    addExpandingOrbit();
+  //   addExpandingOrbit();
 
     setInterval(() => {
       if(time < 0.01) {
@@ -53,27 +52,36 @@ setup = () => {
       time -= 0.01;
     }, minDivideTime / 0.01);
 
-  }, () => {
-    title.innerHTML = 'Something is lost...';
-  }, (p) => {
-    title.innerHTML = 'Where is my mind? | Loading ' + p * 100 + '%';
-  });
+  // }, () => {
+  //   title.innerHTML = 'Something is lost...';
+  // }, (p) => {
+  //   title.innerHTML = 'Where is my mind? | Loading ' + p * 100 + '%';
+  // });
 
-  
 }
 
 draw = () => {
   background(color(colorboard.background));
+  smooth();
+  centerSphere.draw();
 
-  fft.smooth();
-  const spectrum = fft.analyze(16);
-  centerSphere.pos.y = map(spectrum[3], 0, 255, 40, -100);
-  if(spectrum[3] > 155 && time < 0.01) {
+  const frequency = analyseFrequency();
+  if(frequency.length == 0) {
+    return;
+  }
+  let level = 0;
+
+  for(let i = 0; i < 32; i++) {
+    level += frequency[i];
+  }
+  level /= 32;
+
+  centerSphere.radius = map(level, 0, 255, 20, 50);
+  if(level > 185 && time < 0.01) {
     addExpandingOrbit();
     time = minDivideTime;
   }
 
-  smooth();
   orbits.forEach((orbit, i) => {
     orbit.draw();
 
@@ -81,6 +89,4 @@ draw = () => {
       orbits.splice(i, 1);
     }
   });
-
-  centerSphere.draw();
 }
