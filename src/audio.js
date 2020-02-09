@@ -1,8 +1,15 @@
 const audio = document.getElementsByTagName('audio')[0];
+const title = document.getElementsByClassName('title')[0];
 let analyser = undefined;
+let loading = true;
+
+audio.onloadedmetadata = () => {
+  title.innerHTML = 'Click anywhere to start.';
+  loading = false;
+}
 
 analyseFrequency = () => {
-  if(audio.paused || analyser === undefined) {
+  if(loading || audio.paused || analyser === undefined) {
     return [];
   }
 	const frequencyArray = new Uint8Array(analyser.frequencyBinCount);
@@ -11,12 +18,10 @@ analyseFrequency = () => {
 }
 
 mouseClicked = () => {
-  if(audio.paused) {
+  if(!loading && audio.paused) {
     const audioContext = new AudioContext();
     const source = audioContext.createMediaElementSource(audio);
     analyser = audioContext.createAnalyser();
-
-    const title = document.getElementsByClassName('title')[0];
 
     source.connect(analyser);
     analyser.connect(audioContext.destination);
